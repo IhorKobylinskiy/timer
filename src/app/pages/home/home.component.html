@@ -1,0 +1,10 @@
+<mat-card>
+	<app-timer [timerValue]="initialTimerValue" [timerStatus]="status$"></app-timer>
+
+
+	<div style="padding: 10px;">
+	  <button #start type="button" (click)="setStatus(timerStatuses.play)">Play</button>
+	  <button #pause type="button" (click)="setStatus(timerStatuses.pause)">Pause</button>
+	  <button #reset type="button" (click)="setStatus(timerStatuses.reset)">Reset</button>
+	</div>
+</mat-card>

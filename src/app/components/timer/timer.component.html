@@ -1,0 +1,4 @@
+<ng-container *ngIf="intervalObs$ | async as clock; else default">
+  {{clock | timeFormat}}
+</ng-container>
+<ng-template #default>00:00</ng-template>
