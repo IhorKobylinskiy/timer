@@ -1,14 +1,9 @@
 import { Component, OnInit, OnChanges, Input } from '@angular/core';
-import { TimerValue } from '../../pages/home/home.component';
-import { fromEvent, interval, merge, of, range, BehaviorSubject, Subject, Observable } from 'rxjs';
-import { mapTo, scan, switchMap, takeUntil, concatMap, delay, mergeMap, tap, skipWhile, map } from 'rxjs/operators';
-
-/*export interface timerData{
-	//startValue: RegExp = /^([0-6]\d):([0-6]\d)$/g,
-	startValue: {minutes: number, seconds: number},
-	status: timerStatus
-}*/
-
+import { interval, merge, of, Observable } from 'rxjs';
+import { scan, switchMap} from 'rxjs/operators';
+import { Store, select } from '@ngrx/store';
+import { IAppState } from '../../store/state/app.state';
+import { SetTimerValue, ResetTimer, FinishTimer } from '../../store/actions/timer.actions';
 
 @Component({
   selector: 'app-timer',
@@ -16,51 +11,59 @@ import { mapTo, scan, switchMap, takeUntil, concatMap, delay, mergeMap, tap, ski
   styleUrls: ['./timer.component.scss']
 })
 export class TimerComponent implements OnInit {
-	//@Input() startValue: RegExp = /^([0-6]\d):([0-6]\d)$/g
 	@Input() 
-	timerValue: TimerValue;
-
+	value: Observable<Number>;
 
 	@Input() 
-	timerStatus: Observable<String>;
+	status: Observable<String>;
 
-	initialValue$ = new BehaviorSubject(70).asObservable();
+	initialValue;
 	intervalObs$;
 
-	constructor() {
+	constructor(private _store: Store<IAppState>) {
 
 	}
 	
 	ngOnInit(): void {
-		this.initialValue$.subscribe((status) =>{
-			console.log(status);
-		})
-		const zero$ = new Subject();
-		this.intervalObs$ = merge(this.initialValue$, this.timerStatus, zero$).pipe(
+		this.initialValue = this.value;
+		this.intervalObs$ = merge(of(this.value), this.status).pipe(
 	      switchMap(isCounting => {
-	      	console.log(isCounting);
-	      	if(isCounting == 70) return of(70);
-	        if (isCounting === 'reset') return of(null);
-	        return isCounting=='play' ? interval(1000) : of();
+	      	switch (isCounting) {
+	      		case this.value:
+	      			return of(this.value);
+	      			break;
+	      		case 'reset':
+	      			return of(null);
+	      			break;
+	      		case 'playing':
+	      			return interval(1000);
+	      			break;	
+	      		default:
+	      			return of();
+	      			break;
+	      	}
 	      }),
 	      scan((accumulatedValue, currentValue) => {
-	      	console.log(accumulatedValue, currentValue);
 	        if (accumulatedValue === 0 && currentValue !== null) {
-	          //zero$.next(null);
-	          return accumulatedValue;
+	        	return accumulatedValue;
 	        }
-	        if (currentValue === null || !accumulatedValue) return 70;
-	        return --accumulatedValue;
+	        if (currentValue === null || !accumulatedValue) {
+	        	return this.initialValue;
+	        }
+	        let newVal = --accumulatedValue;
+	        this._store.dispatch(new SetTimerValue(newVal));
+	        if(newVal == 0) this._store.dispatch(new FinishTimer());
+	        return newVal;
 	      })
 	    );
 	}
 
 	ngAfterViewInit(){
-		console.log(this.intervalObs$)
+		
 	}
 
 	ngOnDestroy(){
-  		//this.timerStatus.
+  		
   	}
 
 }

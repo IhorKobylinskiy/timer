@@ -1,1 +1,4 @@
-<p>progress-bar works!</p>
+<mat-progress-bar mode="determinate" value="{{value}}"></mat-progress-bar>
+<div class="buttonRow">
+	<button #reset mat-flat-button color="warn" (click)="setReset()" *ngIf="value == 0">Reset</button>	
+</div>

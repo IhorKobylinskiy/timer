@@ -1,4 +1,7 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, Input } from '@angular/core';
+import { Store } from '@ngrx/store';
+import { IAppState } from '../../store/state/app.state';
+import { ResetTimer } from '../../store/actions/timer.actions';
 
 @Component({
   selector: 'app-progress-bar',
@@ -6,10 +9,27 @@ import { Component, OnInit } from '@angular/core';
   styleUrls: ['./progress-bar.component.scss']
 })
 export class ProgressBarComponent implements OnInit {
+	@Input() 
+	value: number;
 
-  constructor() { }
+	constructor(private _store: Store<IAppState>) {
+		
+	}
+	
+	ngOnInit(): void {
+		
+	}
 
-  ngOnInit(): void {
-  }
+	ngAfterViewInit(){
+		
+	}
+
+	ngOnDestroy(){
+
+  	}
+
+  	setReset(){
+  		this._store.dispatch(new ResetTimer());
+  	}
 
 }

@@ -1,16 +1,9 @@
 import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
-import { mapTo, scan, switchMap, takeUntil, concatMap, delay, mergeMap, tap, skipWhile, map } from 'rxjs/operators';
-import { fromEvent, interval, merge, of, range, BehaviorSubject, Subject, Observable } from 'rxjs';
-export interface TimerValue{
-	minutes: number,
-	seconds: number
-}
+import { Store, select } from '@ngrx/store';
+import { IAppState } from '../../store/state/app.state';
+import { PlayTimer, PauseTimer } from '../../store/actions/timer.actions';
 
-export enum TimerStatus {
-    play = "play",
-    reset = "reset",
-    pause = "pause"
-}
+import { selectTimerStatus, selectTimerValue } from '../../store/selectors/timer.selector';
 
 @Component({
   selector: 'app-home',
@@ -19,33 +12,29 @@ export enum TimerStatus {
 })
 
 export class HomeComponent implements OnInit {
- 
-  statusSubj = new Subject<TimerStatus>();
-
-  status$ = this.statusSubj.asObservable();
-
-  initialTimerValue: TimerValue = {
-  	minutes: 1,
-  	seconds: 10
-  }	
-
-  timerStatuses = TimerStatus
-
-  constructor() {
+  status$ = this._store.pipe(select(selectTimerStatus));
+  value$ = this._store.pipe(select(selectTimerValue));
+  status;
+  statusSubscription;
+  constructor(private _store: Store<IAppState>) {
+    this.statusSubscription = this.status$.subscribe((s)=>{
+      this.status = s;
+    })
   }
-
   ngOnInit(): void {
-  	/*const start$ = fromEvent(this.startBtn.nativeElement, 'click').pipe(mapTo(true));
-    const pause$ = fromEvent(this.pauseBtn.nativeElement, 'click').pipe(mapTo(false));
-    const reset$ = fromEvent(this.resetBtn.nativeElement, 'click').pipe(mapTo(null));*/
+  	
   }
 
-  setStatus(status: TimerStatus){
-	this.statusSubj.next(status);
+  setPlay(){
+	  this._store.dispatch(new PlayTimer());
+  }
+
+  setPause(){
+	  this._store.dispatch(new PauseTimer());
   }
 
   ngOnDestroy(){
-  	this.statusSubj.unsubscribe();
+  	this.statusSubscription.unsubscribe();
   }
 
 }
