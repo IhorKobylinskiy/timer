@@ -4,6 +4,8 @@ import { scan, switchMap} from 'rxjs/operators';
 import { Store, select } from '@ngrx/store';
 import { IAppState } from '../../store/state/app.state';
 import { SetTimerValue, ResetTimer, FinishTimer } from '../../store/actions/timer.actions';
+import { ETimerStatuses } from '../../store/state/timer.state';
+
 
 @Component({
   selector: 'app-timer',
@@ -32,10 +34,10 @@ export class TimerComponent implements OnInit {
 	      		case this.value:
 	      			return of(this.value);
 	      			break;
-	      		case 'reset':
+	      		case ETimerStatuses.reset:
 	      			return of(null);
 	      			break;
-	      		case 'playing':
+	      		case ETimerStatuses.playing:
 	      			return interval(1000);
 	      			break;	
 	      		default:
