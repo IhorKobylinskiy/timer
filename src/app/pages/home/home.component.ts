@@ -1,9 +1,8 @@
 import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
-import { Store, select } from '@ngrx/store';
-import { IAppState } from '../../store/state/app.state';
-import { PlayTimer, PauseTimer } from '../../store/actions/timer.actions';
+import { BehaviorSubject, Observable, Subscriber } from 'rxjs';
+import { ETimerStatuses } from '../../models/timer.interfaces';
 
-import { selectTimerStatus, selectTimerValue } from '../../store/selectors/timer.selector';
+
 
 @Component({
   selector: 'app-home',
@@ -12,29 +11,50 @@ import { selectTimerStatus, selectTimerValue } from '../../store/selectors/timer
 })
 
 export class HomeComponent implements OnInit {
-  status$ = this._store.pipe(select(selectTimerStatus));
-  value$ = this._store.pipe(select(selectTimerValue));
-  status;
+  initialValue = 70
+  status = new BehaviorSubject('paused');
+  buttonStatus;
+  value = this.initialValue*(100/this.initialValue);
+  valueSubscription;
   statusSubscription;
-  constructor(private _store: Store<IAppState>) {
-    this.statusSubscription = this.status$.subscribe((s)=>{
-      this.status = s;
+  
+  constructor() {
+    this.statusSubscription = this.status.subscribe((val: ETimerStatuses) =>{
+      this.buttonStatus = val;
     })
   }
+
+  onChanged(value){
+    this.valueSubscription = value.subscribe((val: number) =>{
+      this.value = val*(100/this.initialValue);
+    })
+  }
+
+  setFinish(){
+    this.status.next(ETimerStatuses.finish);
+  }
+
   ngOnInit(): void {
   	
   }
 
   setPlay(){
-	  this._store.dispatch(new PlayTimer());
+	  this.status.next(ETimerStatuses.playing);
   }
 
   setPause(){
-	  this._store.dispatch(new PauseTimer());
+	  this.status.next(ETimerStatuses.paused);
   }
 
-  ngOnDestroy(){
-  	this.statusSubscription.unsubscribe();
+  setReset(){
+    this.status.next(ETimerStatuses.reset);
   }
+
+
+  ngOnDestroy(){
+  	this.valueSubscription.unsubscribe();
+    this.statusSubscription.unsubscribe();
+  }
+ 
 
 }

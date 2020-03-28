@@ -1,7 +1,4 @@
-import { Component, OnInit, Input } from '@angular/core';
-import { Store } from '@ngrx/store';
-import { IAppState } from '../../store/state/app.state';
-import { ResetTimer } from '../../store/actions/timer.actions';
+import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
 
 @Component({
   selector: 'app-progress-bar',
@@ -12,7 +9,10 @@ export class ProgressBarComponent implements OnInit {
 	@Input() 
 	value: number;
 
-	constructor(private _store: Store<IAppState>) {
+	@Output() 
+	onReset = new EventEmitter<void>();
+
+	constructor() {
 		
 	}
 	
@@ -29,7 +29,7 @@ export class ProgressBarComponent implements OnInit {
   	}
 
   	setReset(){
-  		this._store.dispatch(new ResetTimer());
+  		this.onReset.emit();
   	}
 
 }

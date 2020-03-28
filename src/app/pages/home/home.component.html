@@ -1,10 +1,12 @@
 <div class="container">
-	<app-timer-container></app-timer-container>
-	<app-progress-bar-container></app-progress-bar-container>
+	<div class="timerContainer">
+		<app-timer [status]="status" (onValueChanged)="onChanged($event)" (onFinish)="setFinish()" [initialValue]="initialValue"></app-timer>
+	</div>
+	<app-progress-bar [value]="value" (onReset)="setReset()"></app-progress-bar>
 	<div class="row">
 		<div class="buttonRow">
-		  <button #start mat-flat-button color="primary" [disabled]="status == 'playing' || status == 'finish'" (click)="setPlay()">Play</button>
-		  <button #pause mat-flat-button color="accent" [disabled]="status == 'paused' || status == 'finish'" (click)="setPause()">Pause</button>
+		  <button #start mat-flat-button color="primary" [disabled]="buttonStatus == 'playing' || buttonStatus == 'finish'" (click)="setPlay()">Play</button>
+		  <button #pause mat-flat-button color="accent" [disabled]="buttonStatus == 'paused' || buttonStatus == 'finish'" (click)="setPause()">Pause</button>
 		</div>
 	</div>
 </div>

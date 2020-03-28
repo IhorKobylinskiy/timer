@@ -1,9 +1,7 @@
-import { Component, OnInit, OnChanges, Input } from '@angular/core';
-import { interval, merge, of, Observable } from 'rxjs';
+import { Component, OnInit, OnChanges, Input, Output, EventEmitter } from '@angular/core';
+import { interval, merge, of, Observable, BehaviorSubject } from 'rxjs';
 import { scan, switchMap} from 'rxjs/operators';
-import { Store, select } from '@ngrx/store';
-import { IAppState } from '../../store/state/app.state';
-import { SetTimerValue, ResetTimer, FinishTimer } from '../../store/actions/timer.actions';
+import { ETimerStatuses } from '../../models/timer.interfaces';
 
 @Component({
   selector: 'app-timer',
@@ -11,31 +9,42 @@ import { SetTimerValue, ResetTimer, FinishTimer } from '../../store/actions/time
   styleUrls: ['./timer.component.scss']
 })
 export class TimerComponent implements OnInit {
+	@Output() 
+	onValueChanged = new EventEmitter<Observable<Number>>();
+
+	@Output() 
+	onFinish = new EventEmitter<Observable<boolean>>();
+	
 	@Input() 
-	value: Observable<Number>;
+	initialValue: Number;
 
 	@Input() 
-	status: Observable<String>;
+	status: Observable<ETimerStatuses>;
 
-	initialValue;
 	intervalObs$;
 
-	constructor(private _store: Store<IAppState>) {
+	value$;
+	valueObs$: Observable<number>;
 
+	constructor() {
+		
 	}
 	
 	ngOnInit(): void {
-		this.initialValue = this.value;
-		this.intervalObs$ = merge(of(this.value), this.status).pipe(
+		this.value$ = new BehaviorSubject(this.initialValue);
+		this.valueObs$ = this.value$.asObservable();
+
+		this.onValueChanged.emit(this.valueObs$);
+		this.intervalObs$ = merge(this.status, of(this.initialValue)).pipe(
 	      switchMap(isCounting => {
 	      	switch (isCounting) {
-	      		case this.value:
-	      			return of(this.value);
+	      		case this.initialValue:
+	      			return of(this.initialValue);
 	      			break;
-	      		case 'reset':
+	      		case ETimerStatuses.reset:
 	      			return of(null);
 	      			break;
-	      		case 'playing':
+	      		case ETimerStatuses.playing:
 	      			return interval(1000);
 	      			break;	
 	      		default:
@@ -43,7 +52,7 @@ export class TimerComponent implements OnInit {
 	      			break;
 	      	}
 	      }),
-	      scan((accumulatedValue, currentValue) => {
+	      scan((accumulatedValue: number, currentValue: number) => {
 	        if (accumulatedValue === 0 && currentValue !== null) {
 	        	return accumulatedValue;
 	        }
@@ -51,8 +60,10 @@ export class TimerComponent implements OnInit {
 	        	return this.initialValue;
 	        }
 	        let newVal = --accumulatedValue;
-	        this._store.dispatch(new SetTimerValue(newVal));
-	        if(newVal == 0) this._store.dispatch(new FinishTimer());
+	        
+	        this.value$.next(newVal);
+
+	        if (newVal == 0) this.onFinish.emit();
 	        return newVal;
 	      })
 	    );
